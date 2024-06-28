@@ -61,6 +61,25 @@ const createUser=async(req,res)=>{
 }
 
 
+const comparePassword=async(req,res)=>{
+    try{
+        const {username}=req.params
+
+
+
+        const [userPassword]=await model.find({username:username})
+       
+
+
+        console.log(userPassword)
+
+        res.send(userPassword.password)
+
+    }catch(err){
+
+    }
+}
+
 
 const deleteAllUser=async(req,res)=>{
     try{
@@ -78,4 +97,4 @@ const deleteAllUser=async(req,res)=>{
     }
 }
 
-module.exports={createUser,deleteAllUser}
+module.exports={createUser,deleteAllUser,comparePassword}
