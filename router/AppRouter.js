@@ -1,13 +1,16 @@
 const express=require('express')
 const router=express.Router();
 
-const {createUser,deleteAllUser,comparePassword} = require('../controller/userController.js')
+const {deleteAllUser,login,register} = require('../controller/userController.js')
+
+const userController=require("../controller/userController.js")
 
 
 
-
-router.post("/user",createUser)
 router.delete("/deleteAll",deleteAllUser)
-router.get("/getUserName/:username",comparePassword)
+router.get("/login",login)
+router.post("/registration",register)
+
+
 
 module.exports=router

@@ -1,67 +1,77 @@
 const model=require('../model/UserDataSchema')
-const bcrypt=require('bcryptjs')
+const UserService=require('../service/UserService')
+require('dotenv').config()        
 
 
+const register=async(req,res,next)=>{
+    try{
+        const {username,email,password,phone}=req.body
+
+        const singnupResponse=await UserService.signUpPage(
+            username,
+            password,
+            email,
+            phone
+        )
+
+
+        res.status(200).send("new user created")
+    }catch(err){
+        console.log(err)
+        res.status(500).send(err.message)
+    }
+}
  
 
-const createUser=async(req,res)=>{
+
+
+
+
+
+const login=async(req,res)=>{
     try{
-        const {username,password}=req.body
-        
-        const salt = await bcrypt.genSalt(10);
-        const encryptpassword=await bcrypt.hash(password,salt);
-        const newStudent = new model({
-            username: username,
-            password:encryptpassword
-        });
-        
-       model.create(newStudent).then(result=>{
-         res.send(result)
-       })
-        console.log(encryptpassword)
-        
-        
+        const {email,password}=req.body
 
-      }catch(err){
-        res.status(500).send(err.message)
-      }
-}
+        console.log(email)
 
-
-const comparePassword=async(req,res)=>{
-    try{
-        const {username}=req.params
-
-        let status=false
-
-      const {password} =req.body
-           
-        const [userPassword]=await model.find({username:username})
-       
-        bcrypt.compare(password, userPassword.password, (err, isMatch) => { 
-        if( err ) { 
-            return err; 
-        } 
+        const user=await UserService.checkUserInDb(email)
           
-        // If password matches then display true 
-
-      console.log(isMatch)
-
-        if(isMatch){
-           res.status(200).send({vaildatity:true})
-        }else{
-            res.status(200).send({vaildatity:false})
+        if(!user){
+            throw new Error("user cannot found ")
         }
-    }); 
 
-        console.log(userPassword)
-       
+        const isMatch=await user.comparePassword(password)
+
         
+       if(!isMatch){
+        res.status(500).send("InVaild Password")
+       }
+      
+       
+        let tokenData={
+            id:user._id,
+            email:user.email
+        }
+
+        const token=await UserService.generateToken(
+            tokenData,
+            process.env.secert_key,
+            process.env.exp
+        )
+
+        res.send(
+            {
+                "loginStatus":isMatch,
+                "token":token
+            }
+        )
+
+
          
         
 
     }catch(err){
-
+       throw err
     }
 }
 
@@ -82,4 +92,4 @@ const deleteAllUser=async(req,res)=>{
     }
 }
 
-module.exports={createUser,deleteAllUser,comparePassword}
+module.exports={deleteAllUser,login,register}
